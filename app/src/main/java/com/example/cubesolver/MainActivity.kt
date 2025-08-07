@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,6 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.cubesolver.ui.theme.CubeSolverTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,10 +28,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CubeSolverTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "greeting") {
+                    composable("greeting") {
+                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                            Greeting(
+                                navController = navController,
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                    }
+                    composable("cameraScreen") {
+                        // Pass the navController to CameraScreen
+                        CameraScreen(navController = navController)
+                    }
                 }
             }
         }
@@ -36,13 +49,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(modifier: Modifier = Modifier) {
+fun Greeting(navController: NavController, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Button(
-            onClick = { /* TODO: Handle button click */ },
+            onClick = { navController.navigate("cameraScreen") },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
         ) {
             Text("text")
@@ -54,6 +67,8 @@ fun Greeting(modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     CubeSolverTheme {
-        Greeting()
+        // Previewing Greeting requires a NavController, so we create a dummy one.
+        val navController = rememberNavController()
+        Greeting(navController = navController)
     }
 }
