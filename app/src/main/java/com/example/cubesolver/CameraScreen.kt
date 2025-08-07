@@ -244,6 +244,8 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
                                         if (faceCount == 6) {
                                             val mainExecutor = ContextCompat.getMainExecutor(context)
                                             mainExecutor.execute {
+                                                ScanDataHolder.scannedFaces = extractedFaces.toList()
+
                                                 navController.navigate("processingScreen")
                                             }
                                         }
