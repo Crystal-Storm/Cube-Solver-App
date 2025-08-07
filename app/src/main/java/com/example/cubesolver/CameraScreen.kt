@@ -45,6 +45,9 @@ import java.util.concurrent.Executors
 import androidx.compose.runtime.DisposableEffect
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
+import android.graphics.Bitmap
+import android.graphics.Matrix
+import androidx.core.graphics.get
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -195,7 +198,35 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
                             object : ImageCapture.OnImageCapturedCallback() {
                                 override fun onCaptureSuccess(image: ImageProxy) {
                                     Log.d("CameraScreen", "Image captured")
-                                    // Process image here
+
+                                    val bitmap = image.toBitmap()
+
+                                    val rotationDegrees = image.imageInfo.rotationDegrees
+                                    val rotatedBitmap = bitmap.rotate(rotationDegrees)
+                                    Log.d("CameraScreen", "Rotated Bitmap created: ${rotatedBitmap.width}x${rotatedBitmap.height}")
+
+                                    val extractedColors = mutableListOf<Int>()
+                                    val bmpWidth = rotatedBitmap.width
+                                    val bmpHeight = rotatedBitmap.height
+
+                                    val squareSize = bmpWidth.coerceAtMost(bmpHeight) * 0.8f
+                                    val topLeftX = (bmpWidth - squareSize) / 2
+                                    val topLeftY = (bmpHeight - squareSize) / 2
+                                    val thirdOfSquareSize = squareSize / 3
+                                    val centerOffset = thirdOfSquareSize / 2
+
+                                    for (rowIndex in 0..2){
+                                        for (columnIndex in 0..2){
+                                            val x = topLeftX + columnIndex * thirdOfSquareSize + centerOffset
+                                            val y = topLeftY + rowIndex * thirdOfSquareSize + centerOffset
+
+                                            val pixelColor = rotatedBitmap[x.toInt(), y.toInt()]
+                                            extractedColors.add(pixelColor)
+                                        }
+                                    }
+
+                                    Log.d("CameraScreen", "Extracted ${extractedColors.size} colors: $extractedColors")
+
                                     image.close()
                                 }
 
@@ -220,4 +251,9 @@ fun CameraScreenPreview() {
     CubeSolverTheme {
         CameraScreen(navController = rememberNavController())
     }
+}
+
+fun Bitmap.rotate(degrees: Int): Bitmap {
+    val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
 }
