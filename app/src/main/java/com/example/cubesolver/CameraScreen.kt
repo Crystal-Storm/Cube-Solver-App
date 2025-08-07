@@ -21,8 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,12 +40,13 @@ import com.example.cubesolver.ui.theme.CubeSolverTheme
 import androidx.camera.core.ImageCapture // For ImageCapture use case
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import androidx.compose.runtime.DisposableEffect
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import androidx.core.graphics.get
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,9 +70,11 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
 
     // Remember an ImageCapture use case
     val imageCapture = remember { ImageCapture.Builder().build() }
-
     // Remember a single-threaded executor for ImageCapture
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
+
+    var faceCount by remember { mutableIntStateOf(0) }
+    val extractedFaces = remember { mutableListOf<List<Int>>() }
 
     // Clean up the executor when the composable is disposed
     DisposableEffect(Unit) {
@@ -91,7 +92,13 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Show the faces of the Cube") },
+                title = {
+                    if (faceCount < 6) {
+                        Text("Scan face ${faceCount + 1} of 6")
+                    } else {
+                        Text("Processing...")
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -193,49 +200,62 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
                         .clip(CircleShape)
                         .background(Color.LightGray)
                         .border(BorderStroke(5.dp, Color.White), CircleShape)
-                        .clickable { imageCapture.takePicture(
-                            cameraExecutor,
-                            object : ImageCapture.OnImageCapturedCallback() {
-                                override fun onCaptureSuccess(image: ImageProxy) {
-                                    Log.d("CameraScreen", "Image captured")
+                        .clickable {
+                            if (faceCount < 6) {
+                                imageCapture.takePicture(
+                                cameraExecutor,
+                                object : ImageCapture.OnImageCapturedCallback() {
+                                    override fun onCaptureSuccess(image: ImageProxy) {
+                                        Log.d("CameraScreen", "Image captured")
 
-                                    val bitmap = image.toBitmap()
+                                        val bitmap = image.toBitmap()
 
-                                    val rotationDegrees = image.imageInfo.rotationDegrees
-                                    val rotatedBitmap = bitmap.rotate(rotationDegrees)
-                                    Log.d("CameraScreen", "Rotated Bitmap created: ${rotatedBitmap.width}x${rotatedBitmap.height}")
+                                        val rotationDegrees = image.imageInfo.rotationDegrees
+                                        val rotatedBitmap = bitmap.rotate(rotationDegrees)
+                                        Log.d("CameraScreen", "Rotated Bitmap created: ${rotatedBitmap.width}x${rotatedBitmap.height}")
 
-                                    val extractedColors = mutableListOf<Int>()
-                                    val bmpWidth = rotatedBitmap.width
-                                    val bmpHeight = rotatedBitmap.height
+                                        val extractedColors = mutableListOf<Int>()
+                                        val bmpWidth = rotatedBitmap.width
+                                        val bmpHeight = rotatedBitmap.height
 
-                                    val squareSize = bmpWidth.coerceAtMost(bmpHeight) * 0.8f
-                                    val topLeftX = (bmpWidth - squareSize) / 2
-                                    val topLeftY = (bmpHeight - squareSize) / 2
-                                    val thirdOfSquareSize = squareSize / 3
-                                    val centerOffset = thirdOfSquareSize / 2
+                                        val squareSize = bmpWidth.coerceAtMost(bmpHeight) * 0.8f
+                                        val topLeftX = (bmpWidth - squareSize) / 2
+                                        val topLeftY = (bmpHeight - squareSize) / 2
+                                        val thirdOfSquareSize = squareSize / 3
+                                        val centerOffset = thirdOfSquareSize / 2
 
-                                    for (rowIndex in 0..2){
-                                        for (columnIndex in 0..2){
-                                            val x = topLeftX + columnIndex * thirdOfSquareSize + centerOffset
-                                            val y = topLeftY + rowIndex * thirdOfSquareSize + centerOffset
+                                        for (rowIndex in 0..2){
+                                            for (columnIndex in 0..2){
+                                                val x = topLeftX + columnIndex * thirdOfSquareSize + centerOffset
+                                                val y = topLeftY + rowIndex * thirdOfSquareSize + centerOffset
 
-                                            val pixelColor = rotatedBitmap[x.toInt(), y.toInt()]
-                                            extractedColors.add(pixelColor)
+                                                val pixelColor = rotatedBitmap[x.toInt(), y.toInt()]
+                                                extractedColors.add(pixelColor)
+                                            }
+                                        }
+
+                                        faceCount++
+                                        extractedFaces.add(extractedColors.toList())
+
+                                        Log.d("CameraScreen", "Extracted ${extractedColors.size} colors: $extractedColors")
+
+                                        image.close()
+
+                                        if (faceCount == 6) {
+                                            val mainExecutor = ContextCompat.getMainExecutor(context)
+                                            mainExecutor.execute {
+                                                navController.navigate("processingScreen")
+                                            }
                                         }
                                     }
 
-                                    Log.d("CameraScreen", "Extracted ${extractedColors.size} colors: $extractedColors")
-
-                                    image.close()
-                                }
-
-                                override fun onError(exception: ImageCaptureException) {
-                                    Log.e("CameraScreen", "Image capture failed: ${exception.message}", exception)
-                                    // Handle error
-                                }
+                                    override fun onError(exception: ImageCaptureException) {
+                                        Log.e("CameraScreen", "Image capture failed: ${exception.message}", exception)
+                                        // Handle error
+                                    }
+                                })
                             }
-                        ) }
+                        }
                 )
 
             } else {
