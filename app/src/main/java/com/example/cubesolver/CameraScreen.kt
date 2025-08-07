@@ -39,6 +39,12 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.cubesolver.ui.theme.CubeSolverTheme
+import androidx.camera.core.ImageCapture // For ImageCapture use case
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import androidx.compose.runtime.DisposableEffect
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +65,19 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
             hasCameraPermission = granted
         }
     )
+
+    // Remember an ImageCapture use case
+    val imageCapture = remember { ImageCapture.Builder().build() }
+
+    // Remember a single-threaded executor for ImageCapture
+    val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
+
+    // Clean up the executor when the composable is disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraExecutor.shutdown()
+        }
+    }
 
     LaunchedEffect(key1 = true) {
         if (!hasCameraPermission) {
@@ -104,7 +123,8 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
                             cameraProvider.bindToLifecycle(
                                 lifecycleOwner,
                                 cameraSelector,
-                                preview
+                                preview,
+                                imageCapture
                             )
                         } catch (exc: Exception) {
                             Log.e("CameraScreen", "Use case binding failed", exc)
@@ -170,7 +190,21 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
                         .clip(CircleShape)
                         .background(Color.LightGray)
                         .border(BorderStroke(5.dp, Color.White), CircleShape)
-                        .clickable { /* TODO: Implement capture logic */ }
+                        .clickable { imageCapture.takePicture(
+                            cameraExecutor,
+                            object : ImageCapture.OnImageCapturedCallback() {
+                                override fun onCaptureSuccess(image: ImageProxy) {
+                                    Log.d("CameraScreen", "Image captured")
+                                    // Process image here
+                                    image.close()
+                                }
+
+                                override fun onError(exception: ImageCaptureException) {
+                                    Log.e("CameraScreen", "Image capture failed: ${exception.message}", exception)
+                                    // Handle error
+                                }
+                            }
+                        ) }
                 )
 
             } else {
