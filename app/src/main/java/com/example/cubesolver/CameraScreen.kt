@@ -120,6 +120,7 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
                         (canvasWidth - squareSize) / 2,
                         (canvasHeight - squareSize) / 2
                     )
+                    val thirdOfSquareSize = squareSize / 3
 
                     // Draw semi-transparent gray background
                     drawRect(
@@ -141,6 +142,20 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
                         topLeft = squareTopLeft,
                         size = Size(squareSize, squareSize),
                         style = Stroke(width = 4.dp.toPx())
+                    )
+
+                    // Draw the grid pattern
+                    drawRect(
+                        color = Color.White,
+                        topLeft = squareTopLeft + Offset(thirdOfSquareSize, 0f),
+                        size = Size(thirdOfSquareSize, squareSize),
+                        style = Stroke(width = 2.dp.toPx())
+                    )
+                    drawRect(
+                        color = Color.White,
+                        topLeft = squareTopLeft + Offset(0f, thirdOfSquareSize),
+                        size = Size(squareSize, thirdOfSquareSize),
+                        style = Stroke(width = 2.dp.toPx())
                     )
                 }
 
