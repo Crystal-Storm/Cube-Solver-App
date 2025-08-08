@@ -20,12 +20,10 @@ private fun calculateMeanColor(colorsInCluster: List<Color>): Color {
     return Color(red = sumR / count, green = sumG / count, blue = sumB / count)
 }
 
-fun createColorClusters(inputColorLists: List<List<Int>>, maxIterations: Int = 100): CubeColors {
+fun createColorClusters(inputColorLists: List<List<Color>>, maxIterations: Int = 100): CubeColors {
 
-    // turn each int into its respective color
-    val facesAsColors: List<List<Color>> = inputColorLists.map { list -> list.map { colorInt -> Color(colorInt) } }
     // flatten list for easier iteration
-    val allColorsFlat: List<Color> = facesAsColors.flatten()
+    val allColorsFlat: List<Color> = inputColorLists.flatten()
 
     // Get middle color to use as a start for the centroids
 //    var currentCentroids: MutableList<Color> = facesAsColors.map { faceColors ->
@@ -94,7 +92,7 @@ fun createColorClusters(inputColorLists: List<List<Int>>, maxIterations: Int = 1
         // Find the color that is farthest from the current centroid of the cluster it is in
         for (color in overflow) {
             val distance = color.distanceTo(currentCentroids[centroidIndex])
-            if (index != -1 || farthest < distance) {
+            if (index == -1 || farthest < distance) {
                 index = overflow.indexOf(color)
                 farthest = distance
             }
@@ -119,14 +117,12 @@ fun createColorClusters(inputColorLists: List<List<Int>>, maxIterations: Int = 1
     val colorValues = currentCentroids
 
     for ((face, list) in inputColorLists.withIndex()){
-        for (colorInt in list){
-            // for each color
-            val asColor = Color(colorInt)
+        for (color in list){
             // See if a cluster contains the wanted color
             for ((position, cluster) in clusters.withIndex()){
-                if (cluster.contains(asColor)){
+                if (cluster.contains(color)){
                     // if so remove the color and add the corresponding index to be returned
-                    cluster.remove(asColor)
+                    cluster.remove(color)
                     colorIndices[face].add(position)
                     break
                 }

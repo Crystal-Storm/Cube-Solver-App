@@ -23,7 +23,7 @@ import androidx.navigation.NavController
 fun ProcessingScreen(navController: NavController) { // No data arguments in the constructor
 
     // State to hold the data once retrieved
-    var aFacesData by remember { mutableStateOf<List<List<Int>>?>(null) }
+    var aFacesData by remember { mutableStateOf<List<List<Color>>?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
     // LaunchedEffect to retrieve the data once when the composable enters the composition

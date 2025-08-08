@@ -38,7 +38,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.cubesolver.ui.theme.CubeSolverTheme
 import android.graphics.Bitmap
-import android.graphics.Matrix
 import androidx.core.graphics.get
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -64,7 +63,7 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
     )
 
     var faceCount by remember { mutableIntStateOf(0) }
-    val extractedFaces = remember { mutableListOf<List<Int>>() }
+    val extractedFaces = remember { mutableListOf<List<Color>>() }
 
     LaunchedEffect(key1 = true) {
         if (!hasCameraPermission) {
@@ -217,7 +216,7 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
     }
 }
 
-fun getColors(bitmap: Bitmap): List<Int> {
+fun getColors(bitmap: Bitmap): List<Color> {
     val bmpWidth = bitmap.width
     val bmpHeight = bitmap.height
 
@@ -225,20 +224,46 @@ fun getColors(bitmap: Bitmap): List<Int> {
     val topLeftX = (bmpWidth - squareSize) / 2
     val topLeftY = (bmpHeight - squareSize) / 2
     val thirdOfSquareSize = squareSize / 3
-    val centerOffset = thirdOfSquareSize / 2
+    val centerOffset = thirdOfSquareSize / 4
 
-    val extractedColors = mutableListOf<Int>()
+    val extractedColors = mutableListOf<Color>()
 
     for (rowIndex in 0..2){
         for (columnIndex in 0..2){
-            val x = topLeftX + columnIndex * thirdOfSquareSize + centerOffset
-            val y = topLeftY + rowIndex * thirdOfSquareSize + centerOffset
+            val allColors = mutableListOf<Color>()
+            for (xOffset in 1..3) {
+                for (yOffset in 1..3) {
+                    val x = topLeftX + columnIndex * thirdOfSquareSize + centerOffset * xOffset
+                    val y = topLeftY + rowIndex * thirdOfSquareSize + centerOffset * yOffset
 
-            val pixelColor = bitmap[x.toInt(), y.toInt()]
-            extractedColors.add(pixelColor)
+                    val pixelColor = bitmap[x.toInt(), y.toInt()]
+                    allColors.add(Color(pixelColor))
+                }
+            }
+
+            val averageColor = allColors.average()
+
+
+            extractedColors.add(averageColor)
         }
     }
     return extractedColors
+}
+
+fun List<Color>.average(): Color {
+    var red = 0.0f
+    var green = 0.0f
+    var blue = 0.0f
+
+    for (color in this){
+        red += color.red
+        green += color.green
+        blue += color.blue
+    }
+
+    val size = this.size
+
+    return Color(red = red / size, green = green / size, blue = blue / size, alpha = 1.0f)
 }
 
 @ComposePreview(showBackground = true)
