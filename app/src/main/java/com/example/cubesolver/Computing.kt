@@ -6,12 +6,7 @@ import kotlin.math.sqrt
 // Helper function to calculate the average of a list of colors
 private fun calculateMeanColor(colorsInCluster: List<Color>): Color {
     if (colorsInCluster.isEmpty()) {
-        // Return a default color or handle appropriately if a cluster can be empty
-        // This might happen if initial centroids are very poor or K is too high.
-        // For this cube solver, K=6 is fixed, and clusters shouldn't be empty
-        // after the first assignment if there are colors.
-        // Returning black as a fallback, but ideally, clusters should not be empty.
-        return Color.Black
+        return Color(128, 128, 128)
     }
     var sumR = 0f
     var sumG = 0f
@@ -33,9 +28,17 @@ fun createColorClusters(inputColorLists: List<List<Int>>, maxIterations: Int = 1
     val allColorsFlat: List<Color> = facesAsColors.flatten()
 
     // Get middle color to use as a start for the centroids
-    var currentCentroids: MutableList<Color> = facesAsColors.map { faceColors ->
-        faceColors[4]
-    }.toMutableList()
+//    var currentCentroids: MutableList<Color> = facesAsColors.map { faceColors ->
+//        faceColors[4]
+//    }.toMutableList()
+    var currentCentroids: MutableList<Color> = mutableListOf(
+        Color.White,
+        Color.Green,
+        Color.Red,
+        Color.Yellow,
+        Color.Blue,
+        Color(0xFF, 0x5C, 0x00)
+    )
 
     val k = currentCentroids.size
 
@@ -59,14 +62,14 @@ fun createColorClusters(inputColorLists: List<List<Int>>, maxIterations: Int = 1
                     nearestCentroidIndex = index
                 }
             }
-            clusters[nearestCentroidIndex].add(color)
+            newClusters[nearestCentroidIndex].add(color)
         }
 
         val newCentroids = mutableListOf<Color>()
 
         // Set the centroids to be at the mean of each cluster
         for (i in 0 until k) {
-            val newCentroid = calculateMeanColor(clusters[i])
+            val newCentroid = calculateMeanColor(newClusters[i])
             newCentroids.add(newCentroid)
         }
 

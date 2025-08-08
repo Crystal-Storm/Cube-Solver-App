@@ -87,7 +87,11 @@ fun ProcessingScreen(navController: NavController) { // No data arguments in the
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    itemsIndexed(aFacesData!!) { faceIndex, colorListForFace ->
+                    Log.d("ProcessingScreen", "Start clustering colors")
+                    val roundedColors = createColorClusters(aFacesData!!)
+                    Log.d("ProcessingScreen", "Finished clustering colors")
+
+                    itemsIndexed(roundedColors.colorIndices) { faceIndex, colorListForFace ->
                         Column {
                             Text("Face ${faceIndex + 1}:", style = MaterialTheme.typography.titleMedium)
                             Spacer(modifier = Modifier.height(8.dp))
@@ -95,11 +99,11 @@ fun ProcessingScreen(navController: NavController) { // No data arguments in the
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                colorListForFace.forEach { colorValue ->
+                                colorListForFace.forEach { colorIndex ->
                                     Box(
                                         modifier = Modifier
                                             .size(30.dp)
-                                            .background(Color(colorValue), CircleShape)
+                                            .background(roundedColors.colorValues[colorIndex], CircleShape)
                                     )
                                 }
                             }
