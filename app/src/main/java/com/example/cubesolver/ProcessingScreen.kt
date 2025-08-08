@@ -33,7 +33,7 @@ fun ProcessingScreen(navController: NavController) { // No data arguments in the
     LaunchedEffect(key1 = Unit) {
         Log.d("ProcessingScreen", "Attempting to retrieve data from CubeScanDataHolder.")
         // 1. GET THE DATA by accessing the property of the shared holder
-        val data = ScanDataHolder.scannedFaces
+        val data = GlobalInformation.scannedFaces
         if (data != null) {
             aFacesData = data.toList() // Store a copy for this screen's state
             Log.d("ProcessingScreen", "Successfully retrieved ${aFacesData?.size ?: 0} faces.")
@@ -53,7 +53,7 @@ fun ProcessingScreen(navController: NavController) { // No data arguments in the
         onDispose {
             Log.d("ProcessingScreen", "Disposing ProcessingScreen. Clearing data from CubeScanDataHolder.")
             // This is a good safety measure for this type of data passing.
-            ScanDataHolder.scannedFaces = null
+            GlobalInformation.scannedFaces = null
         }
     }
 
@@ -92,6 +92,7 @@ fun ProcessingScreen(navController: NavController) { // No data arguments in the
                 ) {
                     Log.d("ProcessingScreen", "Start clustering colors")
                     val roundedColors = createColorClusters(aFacesData!!)
+                    GlobalInformation.cubeIndices = roundedColors
                     Log.d("ProcessingScreen", "Finished clustering colors")
 
                     itemsIndexed(roundedColors.colorIndices) { faceIndex, colorListForFace ->
