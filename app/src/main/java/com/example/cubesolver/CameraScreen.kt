@@ -201,7 +201,7 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
                                         mainExecutor.execute {
                                             ScanDataHolder.scannedFaces = extractedFaces.toList()
 
-                                            navController.navigate("processingScreen")
+                                            navController.navigate("reviewScreen")
                                         }
                                     }
                                 }

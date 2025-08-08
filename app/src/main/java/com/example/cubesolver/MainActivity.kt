@@ -47,6 +47,9 @@ class MainActivity : ComponentActivity() {
                     composable("processingScreen") {
                         ProcessingScreen(navController = navController)
                     }
+                    composable("reviewScreen") {
+                        ReviewScreen(navController = navController)
+                    }
                 }
             }
         }
