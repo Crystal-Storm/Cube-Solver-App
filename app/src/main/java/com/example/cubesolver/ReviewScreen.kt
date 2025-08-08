@@ -124,6 +124,33 @@ fun ReviewScreen(navController: NavController) {
                         }
                     }
                 }
+                Column (
+                    modifier = Modifier 
+                        .fillMaxWidth() 
+                        .padding(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = {
+                            // TODO: Implement "Change Color" logic
+                            Log.d("ReviewScreen", "Change Color button clicked")
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                    ) {
+                        Text("Change Color", color = Color.White)
+                    }
+
+                    Button(
+                        onClick = {
+                            // TODO: Implement "Done" logic (e.g., navigate, save data)
+                            Log.d("ReviewScreen", "Done button clicked")
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                    ) {
+                        Text("Done", color = Color.White)
+                    }
+                }
             } else {
                 Text(
                     text = "No data to display",
