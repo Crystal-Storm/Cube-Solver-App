@@ -190,32 +190,10 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
 
                                     Log.d("CameraScreen", "Image captured")
 
-                                    val rotationDegrees = 0
-                                    val rotatedBitmap = bitmap.rotate(rotationDegrees)
-                                    Log.d("CameraScreen", "Rotated Bitmap created: ${rotatedBitmap.width}x${rotatedBitmap.height}")
+                                    val extractedColors = getColors(bitmap)
 
-                                    val extractedColors = mutableListOf<Int>()
-                                    val bmpWidth = rotatedBitmap.width
-                                    val bmpHeight = rotatedBitmap.height
-
-                                    val squareSize = bmpWidth.coerceAtMost(bmpHeight) * 0.8f
-                                    val topLeftX = (bmpWidth - squareSize) / 2
-                                    val topLeftY = (bmpHeight - squareSize) / 2
-                                    val thirdOfSquareSize = squareSize / 3
-                                    val centerOffset = thirdOfSquareSize / 2
-
-                                    for (rowIndex in 0..2){
-                                        for (columnIndex in 0..2){
-                                            val x = topLeftX + columnIndex * thirdOfSquareSize + centerOffset
-                                            val y = topLeftY + rowIndex * thirdOfSquareSize + centerOffset
-
-                                            val pixelColor = rotatedBitmap[x.toInt(), y.toInt()]
-                                            extractedColors.add(pixelColor)
-                                        }
-                                    }
-
-                                    faceCount++
                                     extractedFaces.add(extractedColors.toList())
+                                    faceCount++
 
                                     Log.d("CameraScreen", "Extracted ${extractedColors.size} colors: $extractedColors")
 
@@ -239,15 +217,34 @@ fun CameraScreen(navController: NavController, modifier: Modifier = Modifier) {
     }
 }
 
+fun getColors(bitmap: Bitmap): List<Int> {
+    val bmpWidth = bitmap.width
+    val bmpHeight = bitmap.height
+
+    val squareSize = bmpWidth.coerceAtMost(bmpHeight) * 0.8f
+    val topLeftX = (bmpWidth - squareSize) / 2
+    val topLeftY = (bmpHeight - squareSize) / 2
+    val thirdOfSquareSize = squareSize / 3
+    val centerOffset = thirdOfSquareSize / 2
+
+    val extractedColors = mutableListOf<Int>()
+
+    for (rowIndex in 0..2){
+        for (columnIndex in 0..2){
+            val x = topLeftX + columnIndex * thirdOfSquareSize + centerOffset
+            val y = topLeftY + rowIndex * thirdOfSquareSize + centerOffset
+
+            val pixelColor = bitmap[x.toInt(), y.toInt()]
+            extractedColors.add(pixelColor)
+        }
+    }
+    return extractedColors
+}
+
 @ComposePreview(showBackground = true)
 @Composable
 fun CameraScreenPreview() {
     CubeSolverTheme {
         CameraScreen(navController = rememberNavController())
     }
-}
-
-fun Bitmap.rotate(degrees: Int): Bitmap {
-    val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
-    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
 }
