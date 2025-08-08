@@ -67,8 +67,20 @@ fun createColorClusters(inputColorLists: List<List<Color>>, maxIterations: Int =
 
         // Set the centroids to be at the mean of each cluster
         for (i in 0 until k) {
-            val newCentroid = calculateMeanColor(newClusters[i])
+            val currentCluster = newClusters[i]
+
+            val newCentroid = if (!currentCluster.isEmpty()) {
+                calculateMeanColor(currentCluster)
+            } else {
+                Color.Black
+            }
             newCentroids.add(newCentroid)
+        }
+
+        // For any clusters that are empty, remove the farthest color from an overflowing cluster
+        for ((index, _) in newClusters.withIndex().filter { it.value.isEmpty() }) {
+            val movedColor = popOverflowOutlier(newClusters, newCentroids)
+            newCentroids[index] = movedColor
         }
 
         // Check to see if the clusters have not changed
@@ -84,21 +96,8 @@ fun createColorClusters(inputColorLists: List<List<Color>>, maxIterations: Int =
 
     // Even out the sizes of the clusters to each contain 9
     while (clusters.any { it.size > 9 }) {
-        // Get an overflowing cluster
-        val overflow = clusters.first { it.size > 9 }
-        val centroidIndex = clusters.indexOf(overflow)
-        var farthest = 0.0
-        var index = -1
-        // Find the color that is farthest from the current centroid of the cluster it is in
-        for (color in overflow) {
-            val distance = color.distanceTo(currentCentroids[centroidIndex])
-            if (index == -1 || farthest < distance) {
-                index = overflow.indexOf(color)
-                farthest = distance
-            }
-        }
-        // Move the color to the closest centroid cluster that has less than 9 colors
-        val movingColor = overflow.removeAt(index)
+        val movingColor = popOverflowOutlier(clusters, currentCentroids)
+
         var nearest = Double.MAX_VALUE
         var indexNearest = -1
         for (underflow in clusters.filter { it.size < 9 }) {
@@ -131,6 +130,26 @@ fun createColorClusters(inputColorLists: List<List<Color>>, maxIterations: Int =
     }
 
     return CubeColors(colorValues, colorIndices)
+}
+
+private fun popOverflowOutlier(clusters: MutableList<MutableList<Color>>, centroids: List<Color>): Color {
+
+    // Get an overflowing cluster
+    val overflow = clusters.first { it.size > 9 }
+    val centroidIndex = clusters.indexOf(overflow)
+    var farthest = 0.0
+    var index = -1
+    // Find the color that is farthest from the current centroid of the cluster it is in
+    for (color in overflow) {
+        val distance = color.distanceTo(centroids[centroidIndex])
+        if (index == -1 || farthest < distance) {
+            index = overflow.indexOf(color)
+            farthest = distance
+        }
+    }
+    // Move the color to the closest centroid cluster that has less than 9 colors
+    val movingColor = overflow.removeAt(index)
+    return movingColor
 }
 
 private fun Color.distanceTo(other: Color): Double {
