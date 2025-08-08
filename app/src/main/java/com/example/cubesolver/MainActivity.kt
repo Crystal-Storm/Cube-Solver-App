@@ -63,7 +63,7 @@ fun Greeting(navController: NavController, modifier: Modifier = Modifier) {
             onClick = { navController.navigate("cameraScreen") },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
         ) {
-            Text("Click here to go to the Camera", fontSize = 20.sp)
+            Text("Click here to go to the Camera", fontSize = 20.sp, color = Color.LightGray)
         }
     }
 }
