@@ -15,8 +15,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.cubesolver.ui.theme.CubeSolverTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,5 +115,13 @@ fun ProcessingScreen(navController: NavController) { // No data arguments in the
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ProcessingScreenPreview() {
+    CubeSolverTheme {
+        ProcessingScreen(navController = rememberNavController())
     }
 }

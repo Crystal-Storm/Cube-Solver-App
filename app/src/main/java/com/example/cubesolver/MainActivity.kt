@@ -75,7 +75,6 @@ fun Greeting(navController: NavController, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     CubeSolverTheme {
-        // Previewing Greeting requires a NavController, so we create a dummy one.
         val navController = rememberNavController()
         Greeting(navController = navController)
     }
