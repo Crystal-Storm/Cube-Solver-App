@@ -24,7 +24,7 @@ private fun FaceGridDisplay(
     faceColors: List<Color>?,
     faceIndex: Int,
     onCellClick: (faceIndex: Int, cellIndex: Int) -> Unit,
-    cellSize: Dp
+    getCellSize: (faceDisplayIndex: Int, cellIndexInFace: Int) -> Dp
 ) {
     val cellSpacing = 2.dp
     val faceModifier = Modifier.padding(2.dp)
@@ -32,7 +32,7 @@ private fun FaceGridDisplay(
     if (faceColors == null) {
         Box(
             modifier = faceModifier
-                .size(cellSize * 3 + cellSpacing * 2 + 4.dp)
+                .size(getCellSize(faceIndex, 0) * 3 + cellSpacing * 2 + 4.dp)
                 .background(Color.Transparent)
                 .border(1.dp, Color.Transparent),
             contentAlignment = Alignment.Center
@@ -51,12 +51,13 @@ private fun FaceGridDisplay(
                 (0..2).forEach { colIndex ->
                     val cellIndex = rowIndex * 3 + colIndex
                     val cellColor = faceColors.getOrElse(cellIndex) { Color.Gray }
+                    val currentCellSize = getCellSize(faceIndex, cellIndex)
                     Box(
                         modifier = Modifier
-                            .size(cellSize)
+                            .size(currentCellSize)
                             .background(cellColor)
                             .clickable { onCellClick(faceIndex, cellIndex) }
-                            .border(0.5.dp, Color.Transparent)
+                            .border(1.dp, Color.Transparent)
                     )
                 }
             }
@@ -74,7 +75,10 @@ fun ReviewScreen(navController: NavController) {
         null
     }
 
-    val overallCellSize = 35.dp
+    val selectedCellInfo = remember { mutableStateOf<Pair<Int, Int>?>(null) }
+
+    val normalCellSize = 35.dp
+    val enlargedCellSize = 45.dp
 
     Scaffold(
         topBar = {
@@ -107,20 +111,16 @@ fun ReviewScreen(navController: NavController) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            FaceGridDisplay(
-                                faceColors = pairOfFaces[0].map{ faceData.colorValues[it] },
-                                faceIndex = rowIndex * 2,
-                                onCellClick = { faceIdx, cellIdx ->
-                                    Log.d("ReviewScreen", "Clicked: Face $faceIdx, Cell $cellIdx")
-                                },
-                                cellSize = overallCellSize
-                            )
-                            FaceGridDisplay(
-                                faceColors = pairOfFaces[1].map{ faceData.colorValues[it] },
-                                faceIndex = rowIndex * 2 + 1,
-                                onCellClick = { faceIdx, cellIdx -> cellClicked(faceIdx, cellIdx) },
-                                cellSize = overallCellSize
-                            )
+                            for (faceInPairIndex in 0..1){
+                                FaceGridDisplay(
+                                    faceColors = pairOfFaces[faceInPairIndex].map{ faceData.colorValues[it] },
+                                    faceIndex = rowIndex * 2 + faceInPairIndex,
+                                    onCellClick = { faceIdx, cellIdx -> cellClicked(faceIdx, cellIdx, selectedCellInfo, faceData.colorIndices) },
+                                    getCellSize = { faceIdx, cellIdx ->
+                                        if (selectedCellInfo.value == Pair(faceIdx, cellIdx)) enlargedCellSize else normalCellSize
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -162,8 +162,44 @@ fun ReviewScreen(navController: NavController) {
     }
 }
 
-private fun cellClicked(faceIndex: Int, cellIndex: Int){
-    Log.d("ReviewScreen", "Clicked: Face $faceIndex, Cell $cellIndex")
+private fun cellClicked(
+    faceIndex: Int,
+    cellIndex: Int,
+    selectedCellState: MutableState<Pair<Int, Int>?>,
+    colorIndices: List<MutableList<Int>>
+) {
+    val clickedInfo = Pair(faceIndex, cellIndex)
+
+    when (selectedCellState.value) {
+        null -> {
+            // Selected a cell
+            selectedCellState.value = clickedInfo
+            Log.d("ReviewScreen", "Selected: Face $faceIndex, Cell $cellIndex")
+        }
+        clickedInfo -> {
+            // Deselected same cell
+            selectedCellState.value = null
+            Log.d("ReviewScreen", "Deselected: Face $faceIndex, Cell $cellIndex")
+        }
+        else -> {
+            // Swapped cells
+            val (otherFaceIdx, otherCellIdx) = selectedCellState.value!!
+
+            val otherFace = colorIndices[otherFaceIdx]
+            val selectedFace = colorIndices[faceIndex]
+
+            // Perform swap
+            val tempIdx = otherFace[otherCellIdx]
+            otherFace[otherCellIdx] = selectedFace[cellIndex]
+            selectedFace[cellIndex] = tempIdx
+
+            Log.d("ReviewScreen", "Swapped: (F${otherFaceIdx},C${otherCellIdx}) with (F${faceIndex},C${cellIndex})")
+
+            Log.d("ReviewScreen", colorIndices.toString())
+
+            selectedCellState.value = null
+        }
+    }
 }
 
 private fun createSampleScannedFacesForPreview(): List<List<Color>> {
@@ -203,7 +239,7 @@ fun FaceGridDisplay_Preview() {
             faceColors = sampleFace,
             faceIndex = 0,
             onCellClick = { _, _ -> },
-            cellSize = 40.dp
+            getCellSize = {_, _ -> 40.dp}
         )
     }
 }

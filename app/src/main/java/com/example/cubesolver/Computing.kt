@@ -168,4 +168,4 @@ private fun Color.distanceTo(other: Color): Double {
     return sqrt(dr * dr + dg * dg + db * db)
 }
 
-data class CubeColors(val colorValues: List<Color>, val colorIndices: List<List<Int>>)
+data class CubeColors(val colorValues: MutableList<Color>, val colorIndices: List<MutableList<Int>>)
