@@ -21,6 +21,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.cubesolver.ui.theme.CubeSolverTheme
 
+val colorPickerOptions = listOf(
+    Color.Red,
+    Color(0xFF, 0x5C, 0x00),
+    Color.Yellow,
+    Color.Green,
+    Color.Blue,
+    Color.White
+)
+
 @Composable
 private fun FaceGridDisplay(
     faceColors: CubeColors,
@@ -75,6 +84,8 @@ fun ReviewScreen(navController: NavController) {
     )}
 
     val selectedCellInfo = remember { mutableStateOf<Pair<Int, Int>?>(null) }
+
+    val showColorOptions = remember { mutableStateOf(false) }
 
     val normalCellSize = 35.dp
 
@@ -134,12 +145,7 @@ fun ReviewScreen(navController: NavController) {
                 ) {
                     Button(
                         onClick = {
-                            val pair = selectedCellInfo.value!!
-                            val colorIndex = faceData.value!!.colorIndices[pair.first][pair.second]
-
-                            faceData.value!!.colorValues[colorIndex] = Color.White
-
-                            selectedCellInfo.value = null
+                            showColorOptions.value = !showColorOptions.value
                         },
                         enabled = selectedCellInfo.value != null,
                         colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
@@ -155,6 +161,33 @@ fun ReviewScreen(navController: NavController) {
                         colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
                     ) {
                         Text("Done", color = Color.White)
+                    }
+                    if (showColorOptions.value) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            colorPickerOptions.forEach { colorOption ->
+                                Box(modifier = Modifier
+                                    .size(40.dp)
+                                    .background(colorOption.copy(alpha = if (selectedCellInfo.value == null) 0.5f else 1f))
+                                    .clickable {
+                                        if (selectedCellInfo.value != null) {
+                                            val pair = selectedCellInfo.value!!
+                                            val colorIndex = faceData.value!!.colorIndices[pair.first][pair.second]
+
+                                            faceData.value!!.colorValues[colorIndex] = colorOption
+
+                                            selectedCellInfo.value = null
+
+                                            showColorOptions.value = false
+                                        }
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             } else {
