@@ -26,7 +26,8 @@ private fun FaceGridDisplay(
     faceColors: CubeColors,
     faceIndex: Int,
     onCellClick: (faceIndex: Int, cellIndex: Int) -> Unit,
-    getCellSize: (faceDisplayIndex: Int, cellIndexInFace: Int) -> Dp
+    selectedCellGlobalCoordinates: Pair<Int, Int>?,
+    cellSize: Dp
 ) {
     val cellSpacing = 2.dp
     val faceModifier = Modifier.padding(2.dp)
@@ -40,15 +41,15 @@ private fun FaceGridDisplay(
                 (0..2).forEach { colIndex ->
                     val cellIndex = rowIndex * 3 + colIndex
 
+                    val isThisCellSelected = selectedCellGlobalCoordinates == Pair(faceIndex, cellIndex)
+
                     val targetColorForThisCell = faceColors.colorValues[faceColors.colorIndices[faceIndex][cellIndex]]
                     val animatedColor by animateColorAsState(
                         targetValue = targetColorForThisCell,
                         label = "cellColorAnimation"
                     )
-
-                    val targetSizeForThisCell = getCellSize(faceIndex, cellIndex)
                     val animatedSize by animateDpAsState(
-                        targetValue = targetSizeForThisCell,
+                        targetValue = cellSize,
                         label = "cellSizeAnimation"
                     )
                     Box(
@@ -77,7 +78,6 @@ fun ReviewScreen(navController: NavController) {
     val selectedCellInfo = remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     val normalCellSize = 35.dp
-    val enlargedCellSize = 45.dp
 
     Scaffold(
         topBar = {
@@ -115,9 +115,8 @@ fun ReviewScreen(navController: NavController) {
                                     faceColors = faceData,
                                     faceIndex = rowIndex * 2 + faceInPairIndex,
                                     onCellClick = { faceIdx, cellIdx -> cellClicked(faceIdx, cellIdx, selectedCellInfo, faceData.colorIndices) },
-                                    getCellSize = { faceIdx, cellIdx ->
-                                        if (selectedCellInfo.value == Pair(faceIdx, cellIdx)) enlargedCellSize else normalCellSize
-                                    }
+                                    selectedCellGlobalCoordinates = selectedCellInfo.value,
+                                    cellSize = normalCellSize
                                 )
                             }
                         }
