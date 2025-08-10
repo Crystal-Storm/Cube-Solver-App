@@ -1,5 +1,7 @@
 package com.example.cubesolver
 
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
 import kotlin.math.sqrt
 
@@ -129,7 +131,7 @@ fun createColorClusters(inputColorLists: List<List<Color>>, maxIterations: Int =
         }
     }
 
-    return CubeColors(colorValues, colorIndices)
+    return CubeColors(colorValues, colorIndices.map({ it.toMutableStateList() }))
 }
 
 private fun popOverflowOutlier(clusters: MutableList<MutableList<Color>>, centroids: List<Color>): Color {
@@ -168,4 +170,4 @@ private fun Color.distanceTo(other: Color): Double {
     return sqrt(dr * dr + dg * dg + db * db)
 }
 
-data class CubeColors(val colorValues: MutableList<Color>, val colorIndices: List<MutableList<Int>>)
+data class CubeColors(val colorValues: MutableList<Color>, val colorIndices: List<SnapshotStateList<Int>>)

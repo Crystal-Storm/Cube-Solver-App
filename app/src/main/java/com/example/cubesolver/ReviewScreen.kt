@@ -26,7 +26,6 @@ private fun FaceGridDisplay(
     faceColors: CubeColors,
     faceIndex: Int,
     onCellClick: (faceIndex: Int, cellIndex: Int) -> Unit,
-    selectedCellGlobalCoordinates: Pair<Int, Int>?,
     cellSize: Dp
 ) {
     val cellSpacing = 2.dp
@@ -40,8 +39,6 @@ private fun FaceGridDisplay(
             Row(horizontalArrangement = Arrangement.spacedBy(cellSpacing)) {
                 (0..2).forEach { colIndex ->
                     val cellIndex = rowIndex * 3 + colIndex
-
-                    val isThisCellSelected = selectedCellGlobalCoordinates == Pair(faceIndex, cellIndex)
 
                     val targetColorForThisCell = faceColors.colorValues[faceColors.colorIndices[faceIndex][cellIndex]]
                     val animatedColor by animateColorAsState(
@@ -69,11 +66,13 @@ private fun FaceGridDisplay(
 @Composable
 fun ReviewScreen(navController: NavController) {
 
-    val faceData = if (GlobalInformation.scannedFaces != null) {
-        createColorClusters(GlobalInformation.scannedFaces!!)
-    } else {
-        null
-    }
+    val faceData = remember { mutableStateOf(
+        if (GlobalInformation.scannedFaces != null) {
+            createColorClusters(GlobalInformation.scannedFaces!!)
+        } else {
+            null
+        }
+    )}
 
     val selectedCellInfo = remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
@@ -99,8 +98,8 @@ fun ReviewScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (faceData != null) {
-                val facePairs = faceData.colorIndices.take(6).chunked(2)
+            if (faceData.value != null) {
+                val facePairs = faceData.value!!.colorIndices.take(6).chunked(2)
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -112,10 +111,14 @@ fun ReviewScreen(navController: NavController) {
                         ) {
                             for (faceInPairIndex in 0..1){
                                 FaceGridDisplay(
-                                    faceColors = faceData,
+                                    faceColors = faceData.value!!,
                                     faceIndex = rowIndex * 2 + faceInPairIndex,
-                                    onCellClick = { faceIdx, cellIdx -> cellClicked(faceIdx, cellIdx, selectedCellInfo, faceData.colorIndices) },
-                                    selectedCellGlobalCoordinates = selectedCellInfo.value,
+                                    onCellClick = { faceIdx, cellIdx -> cellClicked(
+                                        faceIdx,
+                                        cellIdx,
+                                        selectedCellInfo,
+                                        faceData
+                                    ) },
                                     cellSize = normalCellSize
                                 )
                             }
@@ -164,7 +167,7 @@ private fun cellClicked(
     faceIndex: Int,
     cellIndex: Int,
     selectedCellState: MutableState<Pair<Int, Int>?>,
-    colorIndices: List<MutableList<Int>>
+    faceData: MutableState<CubeColors?>
 ) {
     val clickedInfo = Pair(faceIndex, cellIndex)
 
@@ -183,8 +186,8 @@ private fun cellClicked(
             // Swapped cells
             val (otherFaceIdx, otherCellIdx) = selectedCellState.value!!
 
-            val otherFace = colorIndices[otherFaceIdx]
-            val selectedFace = colorIndices[faceIndex]
+            val otherFace = faceData.value!!.colorIndices[otherFaceIdx]
+            val selectedFace = faceData.value!!.colorIndices[faceIndex]
 
             // Perform swap
             val tempIdx = otherFace[otherCellIdx]
@@ -193,7 +196,7 @@ private fun cellClicked(
 
             Log.d("ReviewScreen", "Swapped: (F${otherFaceIdx},C${otherCellIdx}) with (F${faceIndex},C${cellIndex})")
 
-            Log.d("ReviewScreen", colorIndices.toString())
+            Log.d("ReviewScreen", faceData.value!!.colorIndices.toString())
 
             selectedCellState.value = null
         }
