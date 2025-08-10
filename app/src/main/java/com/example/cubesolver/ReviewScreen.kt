@@ -1,6 +1,8 @@
 package com.example.cubesolver
 
 import android.util.Log
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,26 +23,13 @@ import com.example.cubesolver.ui.theme.CubeSolverTheme
 
 @Composable
 private fun FaceGridDisplay(
-    faceColors: List<Color>?,
+    faceColors: CubeColors,
     faceIndex: Int,
     onCellClick: (faceIndex: Int, cellIndex: Int) -> Unit,
     getCellSize: (faceDisplayIndex: Int, cellIndexInFace: Int) -> Dp
 ) {
     val cellSpacing = 2.dp
     val faceModifier = Modifier.padding(2.dp)
-
-    if (faceColors == null) {
-        Box(
-            modifier = faceModifier
-                .size(getCellSize(faceIndex, 0) * 3 + cellSpacing * 2 + 4.dp)
-                .background(Color.Transparent)
-                .border(1.dp, Color.Transparent),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("N/A", style = MaterialTheme.typography.labelSmall)
-        }
-        return
-    }
 
     Column(
         modifier = faceModifier.border(1.dp, Color.Transparent),
@@ -50,12 +39,22 @@ private fun FaceGridDisplay(
             Row(horizontalArrangement = Arrangement.spacedBy(cellSpacing)) {
                 (0..2).forEach { colIndex ->
                     val cellIndex = rowIndex * 3 + colIndex
-                    val cellColor = faceColors.getOrElse(cellIndex) { Color.Gray }
-                    val currentCellSize = getCellSize(faceIndex, cellIndex)
+
+                    val targetColorForThisCell = faceColors.colorValues[faceColors.colorIndices[faceIndex][cellIndex]]
+                    val animatedColor by animateColorAsState(
+                        targetValue = targetColorForThisCell,
+                        label = "cellColorAnimation"
+                    )
+
+                    val targetSizeForThisCell = getCellSize(faceIndex, cellIndex)
+                    val animatedSize by animateDpAsState(
+                        targetValue = targetSizeForThisCell,
+                        label = "cellSizeAnimation"
+                    )
                     Box(
                         modifier = Modifier
-                            .size(currentCellSize)
-                            .background(cellColor)
+                            .size(animatedSize)
+                            .background(animatedColor)
                             .clickable { onCellClick(faceIndex, cellIndex) }
                             .border(1.dp, Color.Transparent)
                     )
@@ -113,7 +112,7 @@ fun ReviewScreen(navController: NavController) {
                         ) {
                             for (faceInPairIndex in 0..1){
                                 FaceGridDisplay(
-                                    faceColors = pairOfFaces[faceInPairIndex].map{ faceData.colorValues[it] },
+                                    faceColors = faceData,
                                     faceIndex = rowIndex * 2 + faceInPairIndex,
                                     onCellClick = { faceIdx, cellIdx -> cellClicked(faceIdx, cellIdx, selectedCellInfo, faceData.colorIndices) },
                                     getCellSize = { faceIdx, cellIdx ->
@@ -125,8 +124,8 @@ fun ReviewScreen(navController: NavController) {
                     }
                 }
                 Column (
-                    modifier = Modifier 
-                        .fillMaxWidth() 
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -227,19 +226,5 @@ fun ReviewScreen_GridPreview_NullData() {
     GlobalInformation.scannedFaces = null
     CubeSolverTheme {
         ReviewScreen(navController = rememberNavController())
-    }
-}
-
-@Preview(showBackground = true, name = "Single FaceGridDisplay")
-@Composable
-fun FaceGridDisplay_Preview() {
-    val sampleFace = List(9) { Color.hsl((it * 40f) % 360f, 0.9f, 0.5f) }
-    CubeSolverTheme {
-        FaceGridDisplay(
-            faceColors = sampleFace,
-            faceIndex = 0,
-            onCellClick = { _, _ -> },
-            getCellSize = {_, _ -> 40.dp}
-        )
     }
 }
