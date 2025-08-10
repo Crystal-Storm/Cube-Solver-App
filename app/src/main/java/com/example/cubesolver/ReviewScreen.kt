@@ -134,9 +134,14 @@ fun ReviewScreen(navController: NavController) {
                 ) {
                     Button(
                         onClick = {
-                            // TODO: Implement "Change Color" logic
-                            Log.d("ReviewScreen", "Change Color button clicked")
+                            val pair = selectedCellInfo.value!!
+                            val colorIndex = faceData.value!!.colorIndices[pair.first][pair.second]
+
+                            faceData.value!!.colorValues[colorIndex] = Color.White
+
+                            selectedCellInfo.value = null
                         },
+                        enabled = selectedCellInfo.value != null,
                         colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
                     ) {
                         Text("Change Color", color = Color.White)

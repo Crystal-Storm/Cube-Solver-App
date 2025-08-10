@@ -131,7 +131,7 @@ fun createColorClusters(inputColorLists: List<List<Color>>, maxIterations: Int =
         }
     }
 
-    return CubeColors(colorValues, colorIndices.map({ it.toMutableStateList() }))
+    return CubeColors(colorValues.toMutableStateList(), colorIndices.map({ it.toMutableStateList() }))
 }
 
 private fun popOverflowOutlier(clusters: MutableList<MutableList<Color>>, centroids: List<Color>): Color {
@@ -170,4 +170,4 @@ private fun Color.distanceTo(other: Color): Double {
     return sqrt(dr * dr + dg * dg + db * db)
 }
 
-data class CubeColors(val colorValues: MutableList<Color>, val colorIndices: List<SnapshotStateList<Int>>)
+data class CubeColors(val colorValues: SnapshotStateList<Color>, val colorIndices: List<SnapshotStateList<Int>>)
