@@ -14,9 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.cubesolver.ui.theme.CubeSolverTheme
@@ -74,10 +76,13 @@ private fun FaceGridDisplay(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewScreen(navController: NavController) {
+    val context = LocalContext.current
 
     val faceData = remember { mutableStateOf(
-        if (GlobalInformation.scannedFaces != null) {
+        if (GlobalInformation.scannedFaces != null && GlobalInformation.cubeIndices == null) {
             createColorClusters(GlobalInformation.scannedFaces!!)
+        } else if (GlobalInformation.cubeIndices != null) {
+            GlobalInformation.cubeIndices
         } else {
             null
         }
@@ -155,8 +160,12 @@ fun ReviewScreen(navController: NavController) {
 
                     Button(
                         onClick = {
-                            // TODO: Implement "Done" logic (e.g., navigate, save data)
-                            Log.d("ReviewScreen", "Done button clicked")
+                            val mainExecutor = ContextCompat.getMainExecutor(context)
+                            mainExecutor.execute {
+                                GlobalInformation.cubeIndices = faceData.value
+
+                                navController.navigate("solutionScreen")
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
                     ) {

@@ -50,6 +50,9 @@ class MainActivity : ComponentActivity() {
                     composable("reviewScreen") {
                         ReviewScreen(navController = navController)
                     }
+                    composable("solutionScreen") {
+                        SolutionScreen(navController = navController)
+                    }
                 }
             }
         }
