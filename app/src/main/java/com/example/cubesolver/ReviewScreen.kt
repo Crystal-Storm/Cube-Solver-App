@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -14,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -37,13 +37,19 @@ private fun FaceGridDisplay(
     faceColors: CubeColors,
     faceIndex: Int,
     onCellClick: (faceIndex: Int, cellIndex: Int) -> Unit,
-    cellSize: Dp
+    screenSize: Pair<Dp, Dp>
 ) {
+    val cellWidthMax = (screenSize.first.value - 12 ) / 6 * .8
+    val cellHeightMax = (screenSize.second.value - 12 ) / 12 * .8
+
+    val cellSize = cellWidthMax.coerceAtMost(cellHeightMax)
+
     val cellSpacing = 2.dp
-    val faceModifier = Modifier.padding(2.dp)
+
+    val faceModifier = Modifier.padding(cellSpacing)
 
     Column(
-        modifier = faceModifier.border(1.dp, Color.Transparent),
+        modifier = faceModifier,
         verticalArrangement = Arrangement.spacedBy(cellSpacing)
     ) {
         (0..2).forEach { rowIndex ->
@@ -57,7 +63,7 @@ private fun FaceGridDisplay(
                         label = "cellColorAnimation"
                     )
                     val animatedSize by animateDpAsState(
-                        targetValue = cellSize,
+                        targetValue = cellSize.dp,
                         label = "cellSizeAnimation"
                     )
                     Box(
@@ -65,7 +71,6 @@ private fun FaceGridDisplay(
                             .size(animatedSize)
                             .background(animatedColor)
                             .clickable { onCellClick(faceIndex, cellIndex) }
-                            .border(1.dp, Color.Transparent)
                     )
                 }
             }
@@ -76,6 +81,9 @@ private fun FaceGridDisplay(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewScreen(navController: NavController) {
+    val configuration = LocalConfiguration.current
+    val screenSize = Pair(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp)
+
     val context = LocalContext.current
 
     val faceData = remember { mutableStateOf(
@@ -91,8 +99,6 @@ fun ReviewScreen(navController: NavController) {
     val selectedCellInfo = remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     val showColorOptions = remember { mutableStateOf(false) }
-
-    val normalCellSize = 35.dp
 
     Scaffold(
         topBar = {
@@ -135,7 +141,7 @@ fun ReviewScreen(navController: NavController) {
                                         selectedCellInfo,
                                         faceData
                                     ) },
-                                    cellSize = normalCellSize
+                                    screenSize
                                 )
                             }
                         }
