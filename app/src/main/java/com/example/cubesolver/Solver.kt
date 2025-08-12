@@ -46,6 +46,30 @@ class CubeState() {
         rotateFaceStickersCounterClockwise(leftFace)
     }
 
+    override fun equals(other: Any?): Boolean {
+        return if (other is CubeState) {
+            upFace == other.upFace &&
+            leftFace == other.leftFace &&
+            frontFace == other.frontFace &&
+            rightFace == other.rightFace &&
+            backFace == other.backFace &&
+            downFace == other.downFace
+        } else {
+            false
+        }
+    }
+
+    override fun hashCode(): Int {
+        var result = faceColors.hashCode()
+        result = 31 * result + upFace.hashCode()
+        result = 31 * result + leftFace.hashCode()
+        result = 31 * result + frontFace.hashCode()
+        result = 31 * result + rightFace.hashCode()
+        result = 31 * result + backFace.hashCode()
+        result = 31 * result + downFace.hashCode()
+        return result
+    }
+
     private fun rotateFaceStickersClockwise(face: MutableList<Int>) {
         val tempCorner = face[0]
         face[0] = face[6]
@@ -270,5 +294,98 @@ class CubeState() {
                faceToString(rightFace, "Right") +
                faceToString(backFace, "Back") +
                faceToString(downFace, "Down")
+    }
+}
+
+class Node(val cubeState: CubeState, val parent: Node?, val move: String, val gen: Int){
+    fun getChildren(): MutableList<Node>{
+        val move = listOf("", "2", "'")
+        move[0]
+        val children = mutableListOf<Node>()
+        for (rot in 1..3) {
+            var cube = cubeState.copy()
+            cube.rotateUp(rot)
+            children.add(Node(cube, this, "U"+move[rot-1], gen+1))
+
+            cube = cubeState.copy()
+            cube.rotateFront(rot)
+            children.add(Node(cube, this, "F"+move[rot-1], gen+1))
+
+            cube = cubeState.copy()
+            cube.rotateRight(rot)
+            children.add(Node(cube, this, "R"+move[rot-1], gen+1))
+
+            cube = cubeState.copy()
+            cube.rotateDown(rot)
+            children.add(Node(cube, this, "D"+move[rot-1], gen+1))
+
+            cube = cubeState.copy()
+            cube.rotateBack(rot)
+            children.add(Node(cube, this, "B"+move[rot-1], gen+1))
+
+            cube = cubeState.copy()
+            cube.rotateLeft(rot)
+            children.add(Node(cube, this, "L"+move[rot-1], gen+1))
+        }
+        return children
+    }
+
+    fun getScore(target: CubeState): Int{
+        var misplacedCount = 0
+        val currentAllFaces = listOf(cubeState.upFace, cubeState.leftFace, cubeState.frontFace, cubeState.rightFace, cubeState.backFace, cubeState.downFace)
+        val targetAllFaces = listOf(target.upFace, target.leftFace, target.frontFace, target.rightFace, target.backFace, target.downFace)
+
+        for (faceIndex in 0..5) {
+            for (stickerIndex in 0..8) {
+                if (currentAllFaces[faceIndex][stickerIndex] != targetAllFaces[faceIndex][stickerIndex]) {
+                    misplacedCount++
+                }
+            }
+        }
+        return misplacedCount
+    }
+}
+
+class Solver(val start: CubeState, val end: CubeState) {
+    val visited = mutableListOf<CubeState>()
+
+    fun breadthFirstSearch(): String {
+        val queue = mutableListOf<Node>()
+        val startNode = Node(start, null, "", 0)
+        queue.add(startNode)
+
+        var gen = -1
+
+        while (queue.isNotEmpty()){
+            val currentNode = queue.removeAt(0)
+
+            if (currentNode.gen > gen){
+                println("gen: ${currentNode.gen}")
+                gen = currentNode.gen
+            }
+
+            visited.add(currentNode.cubeState)
+
+
+            val children = currentNode.getChildren()
+//            children.sortBy { it.getScore(end) }
+
+            for (child in children) {
+                if (child.cubeState == end) {
+                    var path = ""
+                    var node = child
+                    do {
+                        path = node.move + " " + path
+                        node = node.parent!!
+                    } while (node.move != "")
+                    return path
+                }
+                if (!visited.contains(child.cubeState)) {
+                    queue.add(child)
+                }
+            }
+        }
+
+        return "Solution not found"
     }
 }
