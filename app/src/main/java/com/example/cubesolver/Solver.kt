@@ -344,12 +344,35 @@ class Node(val cubeState: CubeState, val parent: Node?, val move: String, val ge
         }
         return misplacedCount
     }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is Node) {
+            cubeState == other.cubeState
+        } else {
+            false
+        }
+
+    }
+
+    override fun hashCode(): Int {
+        return cubeState.hashCode()
+    }
+
+    override fun toString(): String {
+
+        return if (parent == null || parent.move == ""){
+            move
+        } else {
+            "$parent $move"
+        }
+    }
 }
 
 class Solver(val start: CubeState, val end: CubeState) {
-    val visited = mutableListOf<CubeState>()
 
     fun breadthFirstSearch(): String {
+        val visited = HashSet<CubeState>()
+
         val queue = mutableListOf<Node>()
         val startNode = Node(start, null, "", 0)
         queue.add(startNode)
@@ -368,17 +391,10 @@ class Solver(val start: CubeState, val end: CubeState) {
 
 
             val children = currentNode.getChildren()
-//            children.sortBy { it.getScore(end) }
 
             for (child in children) {
                 if (child.cubeState == end) {
-                    var path = ""
-                    var node = child
-                    do {
-                        path = node.move + " " + path
-                        node = node.parent!!
-                    } while (node.move != "")
-                    return path
+                    return child.toString()
                 }
                 if (!visited.contains(child.cubeState)) {
                     queue.add(child)
