@@ -169,6 +169,7 @@ fun ReviewScreen(navController: NavController) {
                             val mainExecutor = ContextCompat.getMainExecutor(context)
                             mainExecutor.execute {
                                 GlobalInformation.cubeIndices = faceData.value
+                                GlobalInformation.cubeState = CubeState(faceData.value!!)
 
                                 navController.navigate("solutionScreen")
                             }

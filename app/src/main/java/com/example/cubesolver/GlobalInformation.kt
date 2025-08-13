@@ -6,4 +6,6 @@ object GlobalInformation {
     var scannedFaces: List<List<Color>>? = null
 
     var cubeIndices: CubeColors? = null
+
+    var cubeState: CubeState? = null
 }

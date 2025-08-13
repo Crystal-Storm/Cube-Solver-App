@@ -45,9 +45,16 @@ fun SolutionScreen(navController: NavController) {
             contentAlignment = Alignment.Center
         ) {
             Column{
-                if (GlobalInformation.cubeIndices != null) {
-                    val cubeState = CubeState(GlobalInformation.cubeIndices!!)
+                if (GlobalInformation.cubeState != null) {
+                    val cubeState = GlobalInformation.cubeState!!
+                    val solutionState = cubeState.endState()
+
+                    val solver = Solver(cubeState, solutionState)
+
+                    val solution = solver.bidirectionalSearch()
+
                     CubeStateView(cubeState)
+                    Text("Solution: $solution")
                 }
             }
         }
@@ -57,6 +64,11 @@ fun SolutionScreen(navController: NavController) {
 @Preview(showBackground = true)
 @Composable
 fun SolvingScreenPreview() {
+    val cubeState = CubeState()
+    cubeState.rotateUp(1)
+    cubeState.rotateLeft(2)
+    cubeState.rotateFront(3)
+    GlobalInformation.cubeState = cubeState
     CubeSolverTheme {
         SolutionScreen(navController = rememberNavController())
     }

@@ -29,6 +29,18 @@ class CubeState() {
         }
     }
 
+    fun endState(): CubeState {
+        val newFaces = listOf(
+            ArrayList(MutableList(9) { upFace[4] }),
+            ArrayList(MutableList(9) { leftFace[4] }),
+            ArrayList(MutableList(9) { frontFace[4] }),
+            ArrayList(MutableList(9) { rightFace[4] }),
+            ArrayList(MutableList(9) { backFace[4] }),
+            ArrayList(MutableList(9) { downFace[4] })
+        )
+        return CubeState(newFaces)
+    }
+
     constructor(cubeColors: CubeColors) : this() {
         faceColors = cubeColors.colorValues
 
