@@ -32,13 +32,16 @@ class SolverTest {
         scrambledState.rotateUp(1)       // U
         scrambledState.rotateRight(1)    // R
         scrambledState.rotateDown(3)     // D'
-//        scrambledState.rotateBack(2)     // B2
+        scrambledState.rotateBack(2)     // B2
+        scrambledState.rotateRight(1)    // R
+        scrambledState.rotateDown(3)     // D'
+        scrambledState.rotateBack(2)     // B2
 
         val targetState = CubeState() // Target is the solved state
 
         val solverInstance = Solver(scrambledState, targetState)
         val solutionPath = solverInstance.bidirectionalSearch()
-        val expectedSolution = "D R' U' F' "
+        val expectedSolution = "B2 D R' B2 D R' U' F'"
 
         assertEquals("Solution path for 5-move scramble is incorrect", expectedSolution, solutionPath)
     }

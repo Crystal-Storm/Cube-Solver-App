@@ -404,4 +404,81 @@ class Solver(val start: CubeState, val end: CubeState) {
 
         return "Solution not found"
     }
+
+    fun bidirectionalSearch(): String {
+        val frontVisited = HashSet<Node>()
+        val endVisited = HashSet<Node>()
+
+        val frontQueue = mutableListOf<Node>()
+        val endQueue = mutableListOf<Node>()
+        val startNode = Node(start, null, "", 0)
+        val endNode = Node(end, null, "", 0)
+        frontQueue.add(startNode)
+        endQueue.add(endNode)
+
+        val queues = listOf(frontQueue, endQueue)
+        val visits = listOf(frontVisited, endVisited)
+
+//        var gen = -1
+
+        while (endQueue.isNotEmpty() || frontQueue.isNotEmpty()){
+            for (queueIndex in 0..1){
+                val queue = queues[queueIndex]
+                val visited = visits[queueIndex]
+
+                val currentNode = queue.removeAt(0)
+
+//                if (currentNode.gen > gen){
+//                    println("gen: ${currentNode.gen}")
+//                    gen = currentNode.gen
+//                }
+
+                visited.add(currentNode)
+
+
+                val children = currentNode.getChildren()
+
+                for (child in children) {
+                    if (visits[1-queueIndex].contains(child)) {
+                        val foundNode = visits[1-queueIndex].find {it==child}
+                        return if (queueIndex == 0) {
+                            child.toString()+" "+flipString(foundNode.toString())
+                        } else {
+                            foundNode.toString()+" "+flipString(child.toString())
+                        }
+                    }
+                    if (!visited.contains(child)) {
+                        queue.add(child)
+                    }
+                }
+            }
+        }
+
+        return "Solution not found"
+    }
+}
+
+fun flipString(input: String): String {
+    val tokens = input.split(" ")
+
+    var returnString = ""
+
+    for (token in tokens) {
+        val face = token.substring(0, 1)
+        val modifier = token.substring(1)
+
+        val newModifier = when (modifier) {
+            "2" -> "2"
+            "'" -> ""
+            else -> "'"
+        }
+
+        returnString = if (returnString == "") {
+            face + newModifier
+        } else {
+            "$face$newModifier $returnString"
+        }
+    }
+
+    return returnString
 }
